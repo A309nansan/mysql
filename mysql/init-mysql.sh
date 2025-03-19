@@ -57,7 +57,6 @@ docker run -d \
   -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
   -e MYSQL_USER=${MYSQL_USER} \
   -e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
-  -p 3306:3306 \
   -v /var/mysql:/var/lib/mysql \
   --network nansan-network \
   mysql:latest
