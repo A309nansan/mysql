@@ -45,18 +45,16 @@ CLIENT_TOKEN=$(echo "$TOKEN_RESPONSES" | jq -r '.auth.client_token')
 SECRET_RESPONSE=$(curl -s --header "X-Vault-Token: ${CLIENT_TOKEN}" \
   --request GET https://vault.nansan.site/v1/kv/data/auth)
 
-PMA_USER=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.password')
-PMA_PASSWORD=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.username')
+PMA_HOST=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.private.host')
+PMA_PORT=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.private.port')
 
 # Docker로 phpmyadmin 서비스 실행
 log "Execute phpmyadmin..."
 docker run -d \
   --name phpmyadmin \
   --restart unless-stopped \
-  -e PMA_HOST=mysql \
-  -e PMA_PORT=3306 \
-  -e PMA_USER=${PMA_USER} \
-  -e PMA_PASSWORD=${PMA_PASSWORD} \
+  -e PMA_HOST=${PMA_HOST} \
+  -e PMA_PORT=${PMA_PORT} \
   -p 8083:80 \
   --network nansan-network \
   phpmyadmin:latest
