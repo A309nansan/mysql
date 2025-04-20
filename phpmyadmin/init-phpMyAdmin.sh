@@ -28,34 +28,23 @@ fi
 
 cd phpmyadmin || { echo "디렉토리 변경 실패"; exit 1; }
 
+# 실행중인 phpMyAdmin 삭제
+log "phpmyadmin container remove."
+docker rm -f phpmyadmin
+
 # 기존 phpmyadmin 이미지를 삭제하고 새로 빌드
 log "phpmyadmin image remove and build."
 docker rmi phpmyadmin:latest || true
 docker build -t phpmyadmin:latest .
-
-# 필요한 환경변수를 Vault에서 가져오기
-log "Get credential data from vault..."
-
-TOKEN_RESPONSES=$(curl -s --request POST \
-  --data "{\"role_id\":\"${ROLE_ID}\", \"secret_id\":\"${SECRET_ID}\"}" \
-  https://vault.nansan.site/v1/auth/approle/login)
-
-CLIENT_TOKEN=$(echo "$TOKEN_RESPONSES" | jq -r '.auth.client_token')
-
-SECRET_RESPONSE=$(curl -s --header "X-Vault-Token: ${CLIENT_TOKEN}" \
-  --request GET https://vault.nansan.site/v1/kv/data/auth)
-
-PMA_HOST=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.private.host')
-PMA_PORT=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.private.port')
 
 # Docker로 phpmyadmin 서비스 실행
 log "Execute phpmyadmin..."
 docker run -d \
   --name phpmyadmin \
   --restart unless-stopped \
-  -e PMA_HOST=${PMA_HOST} \
-  -e PMA_PORT=${PMA_PORT} \
   -p 8083:80 \
+  -e PMA_HOST=mysql \
+  -e PMA_PORT=3306 \
   --network nansan-network \
   phpmyadmin:latest
 
