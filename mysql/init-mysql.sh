@@ -28,6 +28,10 @@ fi
 
 cd mysql || { echo "디렉토리 변경 실패"; exit 1; }
 
+# 실행중인 mysql container를 삭제
+log "mysql container remove."
+docker rm -f mysql
+
 # 기존 mysql 이미지를 삭제하고 새로 빌드
 log "mysql image remove and build."
 docker rmi mysql:latest || true
@@ -43,7 +47,7 @@ TOKEN_RESPONSES=$(curl -s --request POST \
 CLIENT_TOKEN=$(echo "$TOKEN_RESPONSES" | jq -r '.auth.client_token')
 
 SECRET_RESPONSE=$(curl -s --header "X-Vault-Token: ${CLIENT_TOKEN}" \
-  --request GET https://vault.nansan.site/v1/kv/data/auth)
+  --request GET https://vault.nansan.site/v1/kv/data/authentication)
 
 MYSQL_ROOT_PASSWORD=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.password')
 MYSQL_USER=$(echo "$SECRET_RESPONSE" | jq -r '.data.data.mysql.username')
@@ -54,10 +58,10 @@ log "Execute mysql..."
 docker run -d \
   --name mysql \
   --restart unless-stopped \
+  -v /var/mysql:/var/lib/mysql \
   -e MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} \
   -e MYSQL_USER=${MYSQL_USER} \
   -e MYSQL_PASSWORD=${MYSQL_PASSWORD} \
-  -v /var/mysql:/var/lib/mysql \
   --network nansan-network \
   mysql:latest
 
