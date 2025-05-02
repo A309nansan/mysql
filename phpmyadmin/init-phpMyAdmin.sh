@@ -26,8 +26,6 @@ else
   docker network create --driver bridge nansan-network
 fi
 
-cd phpmyadmin || { echo "디렉토리 변경 실패"; exit 1; }
-
 # 실행중인 phpMyAdmin 삭제
 log "phpmyadmin container remove."
 docker rm -f phpmyadmin
@@ -42,7 +40,7 @@ log "Execute phpmyadmin..."
 docker run -d \
   --name phpmyadmin \
   --restart unless-stopped \
-  -p 8083:80 \
+  -p 11000:80 \
   -e PMA_HOST=mysql \
   -e PMA_PORT=3306 \
   --network nansan-network \
