@@ -26,8 +26,6 @@ else
   docker network create --driver bridge nansan-network
 fi
 
-cd mysql || { echo "디렉토리 변경 실패"; exit 1; }
-
 # 실행중인 mysql container를 삭제
 log "mysql container remove."
 docker rm -f mysql
